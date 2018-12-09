@@ -1,0 +1,361 @@
+URL --> http://dotnet-codeguru.blogspot.com/2010/02/implementing-singleton-design-pattern.html
+
+Introduction
+
+Sometime we need to create only one object of any class in our application then we need to implement Singleton design pattern to achieve this.
+
+For an example, you have logging functionality which takes value as a parameter and store information in external device (like database or xml file or flat file). This logging class doesn’t have any state value. You can design that class using singleton design pattern.
+
+Problem and solution
+
+First problem is that you need to be sure that your class must be initializing once and the reference is available at anytime so your application can use that reference to use singleton class method.
+
+You can solve the above problem using private constructor. When you define private constructor then nobody can initialize object of that class. (Make sure that singleton class doesn’t have any public constructor).
+
+public class SingletonTest
+{
+
+private SingletonTest()
+{
+
+}
+
+}
+
+
+Second problem, if you create private constructor then how can we initialize the class first time when we need it?
+
+We can create and initialize object of singleton class (which have only private constructor) within that class. To achieve this we need to implement one public static method which will return object of Singleton class.
+
+public class SingletonTest
+{
+
+private static SingletonTest singletonTest = null;
+
+private SingletonTest()
+{
+
+}
+
+public static SingletonTest RetrieveObject()
+{
+if (singletonTest == null)
+singletonTest = new SingletonTest();
+return singletonTest;
+}
+
+}
+
+Now, we can create and initialize object of our singleton class using below code:
+
+
+SingletonTest singletonTest = SingletonTest.RetrieveObject();
+
+When user will call this method first time, this method will create new object of SingletonTest class and assign it to private static variable and return that variable.
+
+When user will call the same method again, this method will check that the private static variable is initialized. If private static variable is initialized then it will return it. In our case it initialized already when user called this first time.
+
+So it confirms that our SingletonTest class has only one reference during whole application life cycle.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+URL -->  C-sharpcorner.com/uploadfile/8ef97c/most-asked-asp-net-mvc-interview-questions-and-answers/
+
+What is Singleton Design Pattern?
+Ensures a class has only one instance and provides a global point of access to it.
+A singleton is a class that only allows a single instance of itself to be created, and usually gives simple access to that instance.
+Most commonly, singletons don't allow any parameters to be specified when creating the instance, since a second request of an instance with a different parameter could be problematic! (If the same instance should be accessed for all requests with the same parameter then the factory pattern is more appropriate.)
+There are various ways to implement the Singleton Pattern in C#. The following are the common characteristics of a Singleton Pattern.
+A single constructor, that is private and parameterless.
+The class is sealed.
+A static variable that holds a reference to the single created instance, if any.
+A public static means of getting the reference to the single created instance, creating one if necessary.
+Advantages of Singleton Pattern
+ 
+The advantages of a Singleton Pattern are:
+Singleton pattern can be implemented interfaces.
+It can be also inherit from other classes.
+It can be lazy loaded.
+It has Static Initialization.
+It can be extended into a factory pattern.
+It helps to hide dependencies.
+It provides a single point of access to a particular instance, so it is easy to maintain.
+Disadvantages of Singleton Pattern
+ 
+The disadvantages of a Singleton Pattern are:
+Unit testing is more difficult (because it introduces a global state into an application).
+This pattern reduces the potential for parallelism within a program, because to access the singleton in a multi-threaded system, an object must be serialized (by locking).
+Singleton class vs. Static methods
+ 
+The following conpares Singleton class vs. Static methods:
+A Static Class cannot be extended whereas a singleton class can be extended.
+A Static Class can still have instances (unwanted instances) whereas a singleton class prevents it.
+A Static Class cannot be initialized with a STATE (parameter), whereas a singleton class can be.
+A Static class is loaded automatically by the CLR when the program or namespace containing the class is loaded.
+How to Implement Singleton Pattern in your code
+ 
+There are many way to implement a Singleton Pattern in C#.
+No Thread Safe Singleton.
+Thread-Safety Singleton.
+Thread-Safety Singleton using Double-Check Locking.
+Thread-Safe Singleton without using locks and no lazy instantiation.
+Fully lazy instantiation.
+Using .NET 4's Lazy<T> type.
+1. No Thread Safe Singleton
+ 
+Explanation of the following code:
+The following code is not thread-safe.
+Two different threads could both have evaluated the test (if instance == null) and found it to be true, then both creates instances, which violates the singleton pattern.
+Note that in fact the instance may already have been created before the expression is evaluated, but the memory model doesn't guarantee that the new value of instance will be seen by other threads unless suitable memory barriers have been passed.
+// Bad code! Do not use!  
+public sealed class Singleton  
+{  
+    //Private Constructor.  
+    private Singleton()  
+    {  
+    }  
+    private static Singleton instance = null;  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            if (instance == null)  
+            {  
+                instance = new Singleton();  
+            }  
+            return instance;  
+        }  
+    }  
+}  
+2. Thread Safety Singleton
+ 
+Explanation of the following code:
+This implementation is thread-safe.
+In the following code, the thread is locked on a shared object and checks whether an instance has been created or not.
+This takes care of the memory barrier issue and ensures that only one thread will create an instance.
+For example: Since only one thread can be in that part of the code at a time, by the time the second thread enters it, the first thread will have created the instance, so the expression will evaluate to false.
+The biggest problem with this is performance; performance suffers since a lock is required every time an instance is requested.
+public sealed class Singleton  
+{  
+    Singleton()  
+    {  
+    }  
+    private static readonly object padlock = new object();  
+    private static Singleton instance = null;  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            lock (padlock)  
+            {  
+                if (instance == null)  
+                {  
+                    instance = new Singleton();  
+                }  
+                return instance;  
+            }  
+        }  
+    }  
+}  
+3. Thread Safety Singleton using Double Check Locking
+ 
+Explanation of the following code:
+In the following code, the thread is locked on a shared object and checks whether an instance has been created or not with double checking.
+public sealed class Singleton  
+{  
+    Singleton()  
+    {  
+    }  
+    private static readonly object padlock = new object();  
+    private static Singleton instance = null;  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            if (instance == null)  
+            {  
+                lock (padlock)  
+                {  
+                    if (instance == null)  
+                    {  
+                        instance = new Singleton();  
+                    }  
+                }  
+            }  
+            return instance;  
+        }  
+    }  
+}
+4. Thread Safe Singleton without using locks and no lazy instantiation
+ 
+Explanation of the following code:
+The preceding implementation looks like very simple code.
+This type of implementation has a static constructor, so it executes only once per Application Domain.
+It is not as lazy as the other implementation.
+public sealed class Singleton  
+{  
+    private static readonly Singleton instance = new Singleton();  
+    // Explicit static constructor to tell C# compiler  
+    // not to mark type as beforefieldinit  
+    static Singleton()  
+    {  
+    }  
+    private Singleton()  
+    {  
+    }  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            return instance;  
+        }  
+    }  
+}  
+5. Fully lazy instantiation
+ 
+Explanation of the following code:
+Here, instantiation is triggered by the first reference to the static member of the nested class, that only occurs in Instance.
+This means the implementation is fully lazy, but has all the performance benefits of the previous ones.
+Note that although nested classes have access to the enclosing class's private members, the reverse is not true, hence the need for instance to be internal here.
+That doesn't raise any other problems, though, as the class itself is private.
+The code is more complicated in order to make the instantiation lazy.
+public sealed class Singleton  
+{  
+    private static readonly Singleton instance = new Singleton();  
+    // Explicit static constructor to tell C# compiler  
+    // not to mark type as beforefieldinit  
+    static Singleton()  
+    {  
+    }  
+    private Singleton()  
+    {  
+    }  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            return instance;  
+        }  
+    }  
+}  
+6. Using .NET 4's Lazy<T> type
+ 
+Explanation of the following code:
+If you're using .NET 4 (or higher) then you can use the System.Lazy<T> type to make the laziness really simple.
+All you need to do is pass a delegate to the constructor that calls the Singleton constructor, which is done most easily with a lambda expression.
+It also allows you to check whether or not the instance has been created with the IsValueCreated property.
+public sealed class Singleton  
+{  
+    private Singleton()  
+    {  
+    }  
+    private static readonly Lazy<Singleton> lazy = new Lazy<Singleton>(() => new Singleton());  
+    public static Singleton Instance  
+    {  
+        get  
+        {  
+            return lazy.Value;  
+        }  
+    }  
+}  
+Example
+ 
+The final example is here:
+namespace Singleton  
+{  
+    class Program  
+    {  
+        static void Main(string[] args)  
+        {  
+            Calculate.Instance.ValueOne = 10.5;  
+            Calculate.Instance.ValueTwo = 5.5;  
+            Console.WriteLine("Addition : " + Calculate.Instance.Addition());  
+            Console.WriteLine("Subtraction : " + Calculate.Instance.Subtraction());  
+            Console.WriteLine("Multiplication : " + Calculate.Instance.Multiplication());  
+            Console.WriteLine("Division : " + Calculate.Instance.Division());  
+            Console.WriteLine("\n----------------------\n");  
+            Calculate.Instance.ValueTwo = 10.5;  
+            Console.WriteLine("Addition : " + Calculate.Instance.Addition());  
+            Console.WriteLine("Subtraction : " + Calculate.Instance.Subtraction());  
+            Console.WriteLine("Multiplication : " + Calculate.Instance.Multiplication());  
+            Console.WriteLine("Division : " + Calculate.Instance.Division());  
+            Console.ReadLine();  
+        }  
+    }  
+    public sealed class Calculate  
+    {  
+        private Calculate()  
+        {  
+        }  
+        private static Calculate instance = null;  
+        public static Calculate Instance  
+        {  
+            get  
+            {  
+                if (instance == null)  
+                {  
+                    instance = new Calculate();  
+                }  
+                return instance;  
+            }  
+        }  
+        public double ValueOne { get; set; }  
+        public double ValueTwo { get; set; }  
+        public double Addition()  
+        {  
+            return ValueOne + ValueTwo;  
+        }  
+        public double Subtraction()  
+        {  
+            return ValueOne - ValueTwo;  
+        }  
+        public double Multiplication()  
+        {  
+            return ValueOne * ValueTwo;  
+        }  
+        public double Division()  
+        {  
+            return ValueOne / ValueTwo;  
+        }  
+    }  
+}  
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+URL  --> https://www.dotnetperls.com/singleton
+
+class Program
+{
+    static void Main()
+    {
+        SiteStructure s = SiteStructure.Instance;
+    }
+}
+
+public sealed class SiteStructure
+{
+    static readonly SiteStructure _instance = new SiteStructure();
+    public static SiteStructure Instance
+    {
+        get
+        {
+            return _instance;
+        }
+    }
+    SiteStructure()
+    {
+        // Initialize.
+    }
+}
+Look at where the new SiteStructure() is initialized. The readonly and static keywords are critical here. Readonly allows thread-safety, and that means it can be only allocated once. It has a public static getter.
+And:
+The public Instance property is used by callers to get the singleton instance.
+
+Readonly
+Property
+Sealed allows the compiler to perform special optimizations during JIT compilation. The final methods above are the private instance constructor and an Initialize method. Private constructors mean the class can only allocate itself.
+Sealed
+Private Constructor
+
+ 
+This implementation is fast because the instance member is created directly in its declaration. FxCop warns when you initialize a static member in a static constructor. Static constructors are slower than most constructors.
